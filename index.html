@@ -31,25 +31,33 @@
             theme: {
                 extend: {
                     colors: {
-                        dark: { 900: '#020617', 800: '#0f172a', 700: '#1e293b' },
-                        primary: { 500: '#c084fc', 400: '#d8b4fe', 600: '#a855f7' },
-                        secondary: { 500: '#f472b6', 400: '#fbcfe8' }
+                        dark: { 900: '#020617', 800: '#0f172a', 700: '#1e293b', 950: '#010413' },
+                        primary: {
+                            500: '#6366f1', // Indigo instead of Purple
+                            400: '#818cf8',
+                            600: '#4f46e5',
+                            50: '#eef2ff'
+                        },
+                        secondary: {
+                            500: '#06b6d4', // Cyan instead of Pink
+                            400: '#22d3ee',
+                            600: '#0891b2'
+                        }
                     },
                     fontFamily: {
                         sans: ['"Plus Jakarta Sans"', 'sans-serif'],
                         mono: ['"JetBrains Mono"', 'monospace']
                     },
+                    letterSpacing: {
+                        tighter: '-0.04em',
+                        tight: '-0.02em',
+                    },
                     animation: {
                         'blob': 'blob 10s infinite',
                         'float': 'float 6s ease-in-out infinite',
+                        'spin-slow': 'spin 12s linear infinite',
                     },
                     keyframes: {
-                        blob: {
-                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
-                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
-                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
-                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
-                        },
                         float: {
                             '0%, 100%': { transform: 'translateY(0)' },
                             '50%': { transform: 'translateY(-10px)' },
@@ -76,24 +84,27 @@
             --bg-color: #020617;
             --text-primary: #f8fafc;
             --text-secondary: #94a3b8;
-            --glass-bg: rgba(10, 15, 30, 0.7);
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --glass-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
-            --card-bg: rgba(5, 5, 10, 0.7);
-            --blob-opacity: 0.4;
-            --accent-glow: rgba(192, 132, 252, 0.15);
+            --glass-bg: rgba(10, 15, 30, 0.45);
+            --glass-border: rgba(255, 255, 255, 0.05);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            --card-bg: rgba(15, 23, 42, 0.6);
+            --blob-opacity: 0.3;
+            --accent-glow: rgba(99, 102, 241, 0.12);
+            --primary: #6366f1;
+            --secondary: #06b6d4;
         }
 
         :root[data-theme="light"] {
-            --bg-color: #f8fafc;
+            --bg-color: #f1f5f9;
+            /* Distinct Slate 100 for more depth */
             --text-primary: #0f172a;
             --text-secondary: #475569;
-            --glass-bg: rgba(255, 255, 255, 0.75);
-            --glass-border: rgba(0, 0, 0, 0.06);
-            --glass-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
-            --card-bg: rgba(255, 255, 255, 0.8);
+            --glass-bg: rgba(255, 255, 255, 0.4);
+            --glass-border: rgba(99, 102, 241, 0.15);
+            --glass-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+            --card-bg: rgba(255, 255, 255, 0.6);
             --blob-opacity: 0.15;
-            --accent-glow: rgba(168, 85, 247, 0.08);
+            --accent-glow: rgba(99, 102, 241, 0.1);
         }
 
         /* Performance Optimization: Disable transitions during theme switch */
@@ -119,30 +130,71 @@
             transition: background 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease;
         }
 
+        #header.scrolled {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            height: 4.5rem;
+        }
+
         .project-card {
             position: relative;
-            background: var(--card-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: 1.5rem;
-            overflow: hidden;
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.3s ease, box-shadow 0.3s ease;
-            /* More elastic transition */
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            will-change: transform;
-            /* Performance optimization */
+            background: transparent;
+            border-radius: 2rem;
+            height: 400px;
+            perspective: 1500px;
+            cursor: pointer;
+            transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
         }
 
         .project-card:hover {
-            transform: translateY(-10px) scale(1.03);
-            /* Auto enlarge (Scale) + Lift */
-            border-color: rgba(168, 85, 247, 0.4);
-            /* Primary color hint */
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            /* Deeper shadow */
-            z-index: 20;
-            /* Ensure it sits on top of neighbors */
+            transform: translateY(-8px);
+        }
+
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+
+        .project-card.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .card-front,
+        .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 2rem;
+            overflow: hidden;
+            border: 1px solid var(--glass-border);
+            background: var(--card-bg);
+            display: flex;
+            flex-direction: column;
+            padding: 2rem;
+        }
+
+        .card-back {
+            transform: rotateY(180deg);
+            background: linear-gradient(135deg, var(--card-bg) 0%, rgba(99, 102, 241, 0.05) 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* Hero Text Gradient */
+        .text-gradient {
+            background: linear-gradient(to right, var(--text-primary), var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         /* Flagship Card Style */
@@ -197,7 +249,7 @@
             inset: 0;
             background: rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(8px);
-            z-index: 100;
+            z-index: 1000;
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.3s ease;
@@ -212,22 +264,92 @@
             pointer-events: auto;
         }
 
-        .modal-container {
-            background: var(--bg-color);
-            border: 1px solid var(--glass-border);
+        .success-modal {
+            background: #0a0a0b;
+            border: 1px solid rgba(255, 255, 255, 0.05);
             width: 100%;
-            max-width: 800px;
-            max-height: 90vh;
-            border-radius: 1.5rem;
-            overflow-y: auto;
-            transform: scale(0.95) translateY(20px);
-            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            max-width: 500px;
+            border-radius: 2.5rem;
+            padding: 3rem 2rem;
+            text-align: center;
             position: relative;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            transform: scale(0.9) translateY(20px);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
         }
 
-        .modal-overlay.active .modal-container {
+        .modal-overlay.active .success-modal {
             transform: scale(1) translateY(0);
+        }
+
+        .success-icon-wrapper {
+            width: 80px;
+            height: 80px;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem;
+            color: #10b981;
+        }
+
+        .success-title {
+            font-size: 2.25rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .success-message {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 2.5rem;
+            max-width: 320px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .modal-close-btn {
+            background: #1e1e20;
+            color: white;
+            padding: 0.875rem 3rem;
+            border-radius: 1.25rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-close-btn:hover {
+            background: #27272a;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-top-close {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+        }
+
+        .modal-top-close:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            transform: rotate(90deg);
         }
 
         body.modal-open {
@@ -236,7 +358,7 @@
 
         /* Typography & Utilities */
         .logo-gradient-text {
-            background: linear-gradient(135deg, #d946ef 0%, #a855f7 100%);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -306,33 +428,36 @@
             border-radius: 3px;
         }
 
-        .hero-bg {
-            background: radial-gradient(circle at 15% 25%, rgba(192, 132, 252, 0.15) 0%, transparent 50%),
-                radial-gradient(circle at 85% 75%, rgba(236, 72, 153, 0.15) 0%, transparent 50%);
+        .hero-bg-grid {
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(var(--glass-border) 1px, transparent 1px),
+                linear-gradient(90deg, var(--glass-border) 1px, transparent 1px);
+            background-size: 50px 50px;
+            mask-image: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), black, transparent 80%);
+            -webkit-mask-image: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), black, transparent 80%);
+            opacity: 0.4;
+            pointer-events: none;
+            z-index: 0;
+            transition: mask-image 0.1s ease, -webkit-mask-image 0.1s ease;
         }
 
-        #antigravity-canvas {
+        .hero-bg-glow {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
+            inset: 0;
+            background: radial-gradient(800px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+                    var(--accent-glow),
+                    transparent 40%);
             pointer-events: none;
-            /* Let clicks pass through */
-            opacity: 0;
-            transition: opacity 1.5s ease-in-out;
+            z-index: 0;
         }
 
         main {
             position: relative;
             z-index: 10;
-            /* Ensure content flows above canvas */
         }
 
-        .project-card.hidden {
-            display: none;
-        }
 
         /* Micro-interactions */
         .btn-press:active {
@@ -745,7 +870,7 @@
             background: linear-gradient(to bottom, #4dc7d9 0%, #66a6ff 100%);
             color: white;
             padding: 0.8em 1.2em;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
             border: none;
@@ -753,7 +878,9 @@
             box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.2);
             transition: all 0.3s;
             cursor: pointer;
-            width: 100%;
+            width: auto;
+            min-width: 200px;
+            margin: 0 auto;
         }
 
         .send-msg-btn:hover {
@@ -1289,15 +1416,17 @@
         </div>
     </div>
 
-    <!-- Background Canvas -->
-    <canvas id="antigravity-canvas"></canvas>
+
+    <!-- Professional Geometric Global Background -->
+    <div class="hero-bg-grid"></div>
+    <div class="hero-bg-glow"></div>
 
     <!-- Navigation -->
-    <header id="header" class="fixed w-full top-0 z-50 transition-all duration-300">
+    <header id="header" class="fixed w-full top-0 z-[100] transition-all duration-300">
         <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
             <!-- Logo -->
             <a href="#" class="text-2xl font-bold tracking-tighter">
-                <span class="logo-gradient-text">HA.</span>
+                <span class="logo-gradient-text"></span>
             </a>
 
             <!-- Desktop Menu -->
@@ -1346,28 +1475,18 @@
     <main>
         <!-- Home / Hero Section -->
         <section id="home" class="min-h-screen flex items-center justify-center relative overflow-hidden pt-20">
-            <!-- Background Blob -->
-            <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
-                <div
-                    class="w-[500px] h-[500px] bg-gradient-to-r from-purple-500/30 to-pink-500/30 rounded-full blur-[100px] animate-blob">
-                </div>
-            </div>
 
             <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">
                 <!-- Text Content -->
                 <div class="gsap-hero">
-                    <div
-                        class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-primary-400 mb-6 backdrop-blur-md">
-                        <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                        Available for Full-time Roles
-                    </div>
-                    <h1 class="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+                    <h1 class="text-6xl md:text-8xl font-extrabold mb-8 leading-[0.9] tracking-tighter">
                         Hi, I'm <br>
-                        <span class="logo-gradient-text">Haripriya Agraharapu</span>
+                        <span class="text-gradient">Haripriya</span>
                     </h1>
-                    <p class="text-xl md:text-2xl text-[var(--text-secondary)] mb-8 font-light">
-                        Full Stack Developer building <span class="text-[var(--text-primary)] font-medium">intelligent
-                            systems</span> and <span class="text-[var(--text-primary)] font-medium">seamless web
+                    <p
+                        class="text-xl md:text-2xl text-[var(--text-secondary)] mb-10 font-medium max-w-xl leading-relaxed">
+                        Full Stack Developer crafting <span class="text-[var(--text-primary)]">intelligent
+                            systems</span> and <span class="text-[var(--text-primary)]">exceptional digital
                             experiences</span>.
                     </p>
                     <div class="flex flex-wrap gap-4">
@@ -1377,46 +1496,50 @@
                         <a href="#contact"
                             class="px-8 py-3 bg-white/5 border border-white/10 rounded-full font-bold hover:bg-white/10 transition-all duration-300 backdrop-blur-md">Contact
                             Me</a>
-                        <a href="Resume.docx" download
+                        <a href="Resume (2).pdf" target="_blank"
                             class="px-8 py-3 bg-white/5 border border-white/10 rounded-full font-bold hover:bg-white/10 transition-all duration-300 backdrop-blur-md flex items-center gap-2"><i
-                                 data-feather="download"></i> Resume</a>
+                                data-feather="file-text"></i> Resume</a>
                     </div>
                 </div>
 
                 <!-- Hero Visual (Interactive Card or 3D Element) -->
                 <div class="gsap-hero hidden lg:flex justify-center relative">
                     <div
-                        class="relative w-80 h-96 glass rounded-3xl p-6 rotate-3 hover:rotate-0 transition-transform duration-500 border border-white/10">
+                        class="relative w-80 h-96 glass rounded-3xl p-6 rotate-3 hover:rotate-0 transition-transform duration-500 border border-white/10 group">
                         <div
-                            class="absolute -top-6 -right-6 w-24 h-24 bg-purple-500/20 rounded-full blur-xl animate-pulse">
+                            class="absolute -top-6 -right-6 w-24 h-24 bg-primary-500/10 rounded-full blur-xl animate-pulse">
                         </div>
                         <div class="h-full flex flex-col justify-between relative z-10">
                             <div class="flex justify-between items-start">
-                                <div class="p-3 bg-white/5 rounded-2xl">
-                                    <i data-feather="code" class="w-8 h-8 text-primary-400"></i>
+                                <div
+                                    class="p-3 bg-white/5 rounded-2xl border border-white/5 group-hover:border-primary-500/30 transition-colors">
+                                    <i data-feather="terminal" class="w-8 h-8 text-primary-400"></i>
                                 </div>
-                                <div class="flex gap-1">
-                                    <div class="w-2 h-2 rounded-full bg-red-400"></div>
-                                    <div class="w-2 h-2 rounded-full bg-yellow-400"></div>
-                                    <div class="w-2 h-2 rounded-full bg-green-400"></div>
+                                <div class="flex gap-1.5">
+                                    <div class="w-2.5 h-2.5 rounded-full bg-white/10 border border-white/10"></div>
+                                    <div class="w-2.5 h-2.5 rounded-full bg-white/10 border border-white/10"></div>
+                                    <div class="w-2.5 h-2.5 rounded-full bg-white/10 border border-white/10"></div>
                                 </div>
                             </div>
-                            <div class="space-y-4 font-mono text-sm text-[var(--text-secondary)]">
-                                <p><span class="text-pink-400">const</span> <span class="text-blue-400">developer</span>
+                            <div class="space-y-4 font-mono text-sm leading-relaxed">
+                                <p><span class="text-secondary-400 italic">const</span> <span
+                                        class="text-primary-400 font-bold">haripriya</span>
                                     = {</p>
-                                <p class="pl-4">name: <span class="text-green-400">'Haripriya'</span>,</p>
-                                <p class="pl-4">role: <span class="text-green-400">'Full Stack Dev'</span>,</p>
-                                <p class="pl-4">skills: [<span class="text-green-400">'AI'</span>, <span
-                                        class="text-green-400">'Web'</span>, <span
-                                        class="text-green-400">'Cloud'</span>],</p>
-                                <p class="pl-4">hardWorker: <span class="text-purple-400">true</span></p>
-                                <p>};</p>
+                                <p class="pl-4 text-[var(--text-secondary)]">role: <span class="text-primary-300">'Full
+                                        Stack Dev'</span>,</p>
+                                <p class="pl-4 text-[var(--text-secondary)]">focus: [<span
+                                        class="text-secondary-400">'AI'</span>, <span
+                                        class="text-secondary-400">'Web'</span>],</p>
+                                <p class="pl-4 text-[var(--text-secondary)]">passionate: <span
+                                        class="text-primary-300">true</span></p>
+                                <p class="text-[var(--text-secondary)]">};</p>
                             </div>
-                            <div class="w-full h-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"></div>
+                            <div
+                                class="w-full h-1.5 bg-gradient-to-r from-primary-500/50 to-secondary-500/50 rounded-full">
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
         </section>
         <!-- Areas of Interest / Showcase -->
         <section id="about" class="py-20 max-w-7xl mx-auto px-6">
@@ -1426,104 +1549,108 @@
                 <div class="h-1 w-20 bg-primary-500 rounded-full"></div>
             </div>
 
-            <div class="showcase-container">
-                <div class="showcase-item">
-                    <span class="label-text">Artificial Intelligence</span>
-                    <div class="showcase-details">
-                        <h3 class="text-2xl font-bold mb-2">AI & ML</h3>
-                        <p class="text-[var(--text-secondary)]">I am a 3rd-year B.Tech student passionate about building
-                            intelligent systems. My work bridges the gap between complex AI algorithms and user-friendly
-                            web interfaces, with a focus on solving real-world problems in education and healthcare. I
-                            am constantly exploring new technologies like Deep Learning to create impactful solutions
-                            that can make a difference in society.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div
+                    class="glass p-8 rounded-[2rem] border border-white/5 hover:border-primary-500/30 transition-all group">
+                    <div
+                        class="w-12 h-12 bg-primary-500/10 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-primary-500/20 transition-colors">
+                        <i data-feather="cpu" class="text-primary-400"></i>
                     </div>
+                    <h3 class="text-xl font-bold mb-4">AI & Machine Learning</h3>
+                    <p class="text-[var(--text-secondary)] text-sm leading-relaxed">
+                        Building intelligent systems that solve real-world problems, from healthcare diagnostics to
+                        predictive analytics.
+                    </p>
                 </div>
-                <div class="showcase-item">
-                    <span class="label-text">Web Development</span>
-                    <div class="showcase-details">
-                        <h3 class="text-2xl font-bold mb-2">Full Stack Web</h3>
-                        <p class="text-[var(--text-secondary)]">Building responsive, high-performance web applications
-                            with React, Node.js, and modern CSS frameworks.</p>
+                <div
+                    class="glass p-8 rounded-[2rem] border border-white/5 hover:border-secondary-500/30 transition-all group">
+                    <div
+                        class="w-12 h-12 bg-secondary-500/10 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-secondary-500/20 transition-colors">
+                        <i data-feather="code" class="text-secondary-400"></i>
                     </div>
+                    <h3 class="text-xl font-bold mb-4">Full Stack Development</h3>
+                    <p class="text-[var(--text-secondary)] text-sm leading-relaxed">
+                        Crafting high-performance web applications with modular architecture and seamless user
+                        experiences.
+                    </p>
                 </div>
-                <div class="showcase-item">
-                    <span class="label-text">Cloud Computing</span>
-                    <div class="showcase-details">
-                        <h3 class="text-2xl font-bold mb-2">Cloud Infrastructure</h3>
-                        <p class="text-[var(--text-secondary)]">Deploying scalable solutions on AWS and Azure, managing
-                            databases, and ensuring 99.9% uptime.</p>
+                <div
+                    class="glass p-8 rounded-[2rem] border border-white/5 hover:border-indigo-500/30 transition-all group">
+                    <div
+                        class="w-12 h-12 bg-indigo-500/10 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-indigo-500/20 transition-colors">
+                        <i data-feather="cloud" class="text-indigo-400"></i>
                     </div>
+                    <h3 class="text-xl font-bold mb-4">Cloud Architecture</h3>
+                    <p class="text-[var(--text-secondary)] text-sm leading-relaxed">
+                        Designing scalable and secure infrastructure on AWS and Azure with a focus on high availability.
+                    </p>
                 </div>
-                <div class="showcase-item">
-                    <span class="label-text">UI/UX Design</span>
-                    <div class="showcase-details">
-                        <h3 class="text-2xl font-bold mb-2">Creative Design</h3>
-                        <p class="text-[var(--text-secondary)]">Crafting intuitive and accessible user interfaces with a
-                            focus on modern aesthetics and micro-interactions.</p>
+                <div
+                    class="glass p-8 rounded-[2rem] border border-white/5 hover:border-pink-500/30 transition-all group">
+                    <div
+                        class="w-12 h-12 bg-pink-500/10 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-pink-500/20 transition-colors">
+                        <i data-feather="layers" class="text-pink-400"></i>
                     </div>
+                    <h3 class="text-xl font-bold mb-4">UI/UX Design</h3>
+                    <p class="text-[var(--text-secondary)] text-sm leading-relaxed">
+                        Creating intuitive, accessible, and aesthetically pleasing interfaces that put the user first.
+                    </p>
                 </div>
             </div>
         </section>
 
         <!-- Skills Section -->
-        <section id="skills" class="py-10 max-w-7xl mx-auto px-6 mb-20">
-            <div class="glass rounded-3xl p-8 md:p-12 border border-white/5 relative overflow-hidden">
-                <div class="absolute top-0 right-0 w-64 h-64 bg-primary-500/10 rounded-full blur-3xl -z-10"></div>
-
-                <h3 class="text-2xl font-bold mb-8">Technical Arsenals</h3>
-
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-                    <div class="space-y-4">
-                        <h4 class="text-primary-400 font-mono text-sm uppercase tracking-wider">Languages</h4>
-                        <ul class="space-y-2 text-[var(--text-secondary)]">
-                            <li><i data-feather="check-circle" class="inline w-4 h-4 mr-2 text-primary-500"></i>Python
-                            </li>
-                            <li><i data-feather="check-circle"
-                                    class="inline w-4 h-4 mr-2 text-primary-500"></i>JavaScript (ES6+)</li>
-                            <li><i data-feather="check-circle" class="inline w-4 h-4 mr-2 text-primary-500"></i>Java
-                            </li>
-                            <li><i data-feather="check-circle" class="inline w-4 h-4 mr-2 text-primary-500"></i>SQL</li>
-                        </ul>
+        <section id="skills" class="py-20 max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-5xl font-bold mb-4">Core <span class="text-primary-500">Expertise</span>
+                </h2>
+                <p class="text-[var(--text-secondary)] text-lg max-w-2xl mx-auto">Focused on mastering the fundamentals
+                    of programming and data management.</p>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- Skill 1: C -->
+                <div
+                    class="glass p-10 rounded-[2.5rem] border border-white/5 hover:border-primary-500/30 transition-all group text-center flex flex-col items-center">
+                    <div
+                        class="w-20 h-20 bg-primary-500/10 rounded-3xl flex items-center justify-center mb-8 group-hover:bg-primary-500/20 transition-all group-hover:scale-110">
+                        <span class="text-3xl font-black text-primary-400">C</span>
                     </div>
-                    <div class="space-y-4">
-                        <h4 class="text-primary-400 font-mono text-sm uppercase tracking-wider">Frontend</h4>
-                        <ul class="space-y-2 text-[var(--text-secondary)]">
-                            <li><i data-feather="check-circle" class="inline w-4 h-4 mr-2 text-primary-500"></i>React.js
-                            </li>
-                            <li><i data-feather="check-circle" class="inline w-4 h-4 mr-2 text-primary-500"></i>Tailwind
-                                CSS</li>
-                            <li><i data-feather="check-circle" class="inline w-4 h-4 mr-2 text-primary-500"></i>GSAP
-                            </li>
-                            <li><i data-feather="check-circle" class="inline w-4 h-4 mr-2 text-primary-500"></i>HTML5 /
-                                CSS3</li>
-                        </ul>
+                    <h3 class="text-2xl font-bold mb-4">C Programming</h3>
+                    <p class="text-[var(--text-secondary)] leading-relaxed">System-level programming and algorithm
+                        optimization with a focus on memory management.</p>
+                </div>
+                <!-- Skill 2: Python -->
+                <div
+                    class="glass p-10 rounded-[2.5rem] border border-white/5 hover:border-secondary-500/30 transition-all group text-center flex flex-col items-center">
+                    <div
+                        class="w-20 h-20 bg-secondary-500/10 rounded-3xl flex items-center justify-center mb-8 group-hover:bg-secondary-500/20 transition-all group-hover:scale-110">
+                        <i data-feather="code" class="w-10 h-10 text-secondary-400"></i>
                     </div>
-                    <div class="space-y-4">
-                        <h4 class="text-primary-400 font-mono text-sm uppercase tracking-wider">Backend & ML</h4>
-                        <ul class="space-y-2 text-[var(--text-secondary)]">
-                            <li><i data-feather="check-circle" class="inline w-4 h-4 mr-2 text-primary-500"></i>Node.js
-                            </li>
-                            <li><i data-feather="check-circle" class="inline w-4 h-4 mr-2 text-primary-500"></i>Flask /
-                                FastAPI</li>
-                            <li><i data-feather="check-circle"
-                                    class="inline w-4 h-4 mr-2 text-primary-500"></i>TensorFlow / PyTorch</li>
-                            <li><i data-feather="check-circle" class="inline w-4 h-4 mr-2 text-primary-500"></i>OpenCV
-                            </li>
-                        </ul>
+                    <h3 class="text-2xl font-bold mb-4">Python</h3>
+                    <p class="text-[var(--text-secondary)] leading-relaxed">Versatile implementation of AI models, data
+                        analysis scripts, and backend automation.</p>
+                </div>
+                <!-- Skill 3: Java -->
+                <div
+                    class="glass p-10 rounded-[2.5rem] border border-white/5 hover:border-indigo-500/30 transition-all group text-center flex flex-col items-center">
+                    <div
+                        class="w-20 h-20 bg-indigo-500/10 rounded-3xl flex items-center justify-center mb-8 group-hover:bg-indigo-500/20 transition-all group-hover:scale-110">
+                        <i data-feather="coffee" class="w-10 h-10 text-indigo-400"></i>
                     </div>
-                    <div class="space-y-4">
-                        <h4 class="text-primary-400 font-mono text-sm uppercase tracking-wider">Tools</h4>
-                        <ul class="space-y-2 text-[var(--text-secondary)]">
-                            <li><i data-feather="check-circle" class="inline w-4 h-4 mr-2 text-primary-500"></i>Git /
-                                GitHub</li>
-                            <li><i data-feather="check-circle" class="inline w-4 h-4 mr-2 text-primary-500"></i>VS Code
-                            </li>
-                            <li><i data-feather="check-circle" class="inline w-4 h-4 mr-2 text-primary-500"></i>Figma
-                            </li>
-                            <li><i data-feather="check-circle" class="inline w-4 h-4 mr-2 text-primary-500"></i>Postman
-                            </li>
-                        </ul>
+                    <h3 class="text-2xl font-bold mb-4">Java</h3>
+                    <p class="text-[var(--text-secondary)] leading-relaxed">Enterprise-grade application development
+                        using object-oriented principles and robust architectures.</p>
+                </div>
+                <!-- Skill 4: SQL -->
+                <div
+                    class="glass p-10 rounded-[2.5rem] border border-white/5 hover:border-pink-500/30 transition-all group text-center flex flex-col items-center">
+                    <div
+                        class="w-20 h-20 bg-pink-500/10 rounded-3xl flex items-center justify-center mb-8 group-hover:bg-pink-500/20 transition-all group-hover:scale-110">
+                        <i data-feather="database" class="w-10 h-10 text-pink-400"></i>
                     </div>
+                    <h3 class="text-2xl font-bold mb-4">SQL</h3>
+                    <p class="text-[var(--text-secondary)] leading-relaxed">Relational database design, complex query
+                        optimization, and structured data management.</p>
                 </div>
             </div>
         </section>
@@ -1536,120 +1663,114 @@
                     </h2>
                     <div class="h-1 w-20 bg-primary-500 rounded-full"></div>
                 </div>
-                <!-- Filters -->
-                <div class="flex flex-wrap gap-2">
-                    <button
-                        class="filter-btn px-4 py-2 rounded-full bg-primary-500 text-white shadow-lg text-sm font-medium transition-all"
-                        data-filter="all">All</button>
-                    <button
-                        class="filter-btn px-4 py-2 rounded-full glass text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-sm font-medium transition-all"
-                        data-filter="ml">AI / ML</button>
-                    <button
-                        class="filter-btn px-4 py-2 rounded-full glass text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-sm font-medium transition-all"
-                        data-filter="web">Web Dev</button>
-                    <button
-                        class="filter-btn px-4 py-2 rounded-full glass text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-sm font-medium transition-all"
-                        data-filter="research">Research</button>
-                </div>
             </div>
 
             <div id="projects-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
                 <!-- 1. ClassPulse AI -->
-                <div class="project-card group cursor-pointer" onclick="openModal('classpulse')"
-                    data-category="ml vision">
-                    <div class="p-8 h-full flex flex-col relative z-10">
-                        <div class="flex justify-between items-start mb-6">
-                            <div
-                                class="p-3 bg-indigo-500/10 rounded-2xl border border-indigo-500/20 group-hover:bg-indigo-500/20 transition-colors">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round" class="text-indigo-500 bar-anim">
-                                    <line x1="12" y1="20" x2="12" y2="10"></line>
-                                    <line x1="18" y1="20" x2="18" y2="4"></line>
-                                    <line x1="6" y1="20" x2="6" y2="16"></line>
-                                </svg>
+                <div class="project-card group" onclick="this.classList.toggle('flipped')">
+                    <div class="card-inner">
+                        <div class="card-front">
+                            <div class="flex justify-between items-start mb-6">
+                                <div
+                                    class="p-3 bg-primary-500/10 rounded-2xl border border-primary-500/20 group-hover:bg-primary-500/20 transition-colors">
+                                    <i data-feather="monitor" class="text-primary-400"></i>
+                                </div>
+                                <span
+                                    class="px-3 py-1 bg-white/5 rounded-full text-[10px] font-bold tracking-widest uppercase text-gray-400 border border-white/5">AI
+                                    / Vision</span>
                             </div>
-                            <span
-                                class="px-3 py-1 bg-white/5 rounded-full text-[10px] font-bold tracking-widest uppercase text-gray-400 border border-white/5">AI
-                                / Vision</span>
+                            <h3 class="text-xl font-bold mb-2 group-hover:text-primary-400 transition-colors">ClassPulse
+                                AI</h3>
+                            <p class="text-[var(--text-secondary)] text-sm leading-relaxed mb-6 flex-grow">
+                                Real-time classroom analytics system using Computer Vision to track student engagement
+                                and emotions.
+                            </p>
+                            <div
+                                class="flex items-center text-sm font-mono text-primary-400 opacity-0 group-hover:opacity-100 transition-all">
+                                <span>View Case Study</span>
+                                <i data-feather="rotate-cw" class="w-4 h-4 ml-2 transition-transform"></i>
+                            </div>
                         </div>
-                        <h3 class="text-xl font-bold mb-2 group-hover:text-indigo-400 transition-colors">ClassPulse AI
-                        </h3>
-                        <p class="text-[var(--text-secondary)] text-sm leading-relaxed mb-6 flex-grow">
-                            Real-time classroom analytics system using Computer Vision to track student engagement and
-                            emotions privacy-preservingly.
-                        </p>
-                        <div
-                            class="flex items-center text-sm font-mono text-[var(--text-secondary)] group-hover:text-indigo-400 transition-colors">
-                            <span>View Case Study</span>
-                            <i data-feather="arrow-right"
-                                class="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform"></i>
+                        <div class="card-back">
+                            <h4 class="text-primary-400 font-bold mb-2">Problem</h4>
+                            <p class="text-sm text-[var(--text-secondary)] mb-4">Educators struggle to measure real-time
+                                student engagement in large classes, often missing subtle emotional cues.</p>
+                            <h4 class="text-secondary-400 font-bold mb-2">Solution</h4>
+                            <p class="text-sm text-[var(--text-secondary)]">Uses Computer Vision and emotion recognition
+                                to provide live heatmaps of engagement levels.</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- 2. Risk2Relief -->
-                <div class="project-card group cursor-pointer" onclick="openModal('risk2relief')" data-category="ml">
-                    <div class="p-8 h-full flex flex-col relative z-10">
-                        <div class="flex justify-between items-start mb-6">
-                            <div
-                                class="p-3 bg-rose-500/10 rounded-2xl border border-rose-500/20 group-hover:bg-rose-500/20 transition-colors">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round" class="text-rose-500 zap-flash">
-                                    <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
-                                </svg>
+                <div class="project-card group" onclick="this.classList.toggle('flipped')">
+                    <div class="card-inner">
+                        <div class="card-front">
+                            <div class="flex justify-between items-start mb-6">
+                                <div
+                                    class="p-3 bg-secondary-500/10 rounded-2xl border border-secondary-500/20 group-hover:bg-secondary-500/20 transition-colors">
+                                    <i data-feather="activity" class="text-secondary-400"></i>
+                                </div>
+                                <span
+                                    class="px-3 py-1 bg-white/5 rounded-full text-[10px] font-bold tracking-widest uppercase text-gray-400 border border-white/5">AI
+                                    / Health</span>
                             </div>
-                            <span
-                                class="px-3 py-1 bg-white/5 rounded-full text-[10px] font-bold tracking-widest uppercase text-gray-400 border border-white/5">AI
-                                / Health</span>
+                            <h3 class="text-xl font-bold mb-2 group-hover:text-secondary-400 transition-colors">
+                                Risk2Relief</h3>
+                            <p class="text-[var(--text-secondary)] text-sm leading-relaxed mb-6 flex-grow">
+                                AI-powered diabetes risk predictor providing early diagnosis probabilities based on
+                                health metrics.
+                            </p>
+                            <div
+                                class="flex items-center text-sm font-mono opacity-0 group-hover:opacity-100 transition-all">
+                                <span>View Case Study</span>
+                                <i data-feather="rotate-cw" class="w-4 h-4 ml-2 transition-transform"></i>
+                            </div>
                         </div>
-                        <h3 class="text-xl font-bold mb-2 group-hover:text-rose-400 transition-colors">Risk2Relief</h3>
-                        <p class="text-[var(--text-secondary)] text-sm leading-relaxed mb-6 flex-grow">
-                            AI-powered diabetes risk predictor providing early diagnosis probabilities based on health
-                            metrics.
-                        </p>
-                        <div
-                            class="flex items-center text-sm font-mono text-[var(--text-secondary)] group-hover:text-rose-400 transition-colors">
-                            <span>View Case Study</span>
-                            <i data-feather="arrow-right"
-                                class="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform"></i>
+                        <div class="card-back">
+                            <h4 class="text-primary-400 font-bold mb-2">Problem</h4>
+                            <p class="text-sm text-[var(--text-secondary)] mb-4">Late diagnosis of lifestyle diseases
+                                significantly reduces treatment effectiveness and increases costs.</p>
+                            <h4 class="text-secondary-400 font-bold mb-2">Solution</h4>
+                            <p class="text-sm text-[var(--text-secondary)]">Developed an ensemble ML model that analyzes
+                                health metrics to provide a risk score with 94% accuracy.</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- 3. Resume Screening Bot -->
-                <div class="project-card group cursor-pointer" onclick="openModal('resume')" data-category="ml nlp">
-                    <div class="p-8 h-full flex flex-col relative z-10">
-                        <div class="flex justify-between items-start mb-6">
-                            <div
-                                class="p-3 bg-sky-500/10 rounded-2xl border border-sky-500/20 group-hover:bg-sky-500/20 transition-colors">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round" class="text-sky-500 doc-line">
-                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                    <polyline points="14 2 14 8 20 8"></polyline>
-                                    <line x1="16" y1="13" x2="8" y2="13" class="doc-line-1"></line>
-                                    <line x1="16" y1="17" x2="8" y2="17" class="doc-line-2"></line>
-                                    <polyline points="10 9 9 9 8 9"></polyline>
-                                </svg>
+                <div class="project-card group" onclick="this.classList.toggle('flipped')">
+                    <div class="card-inner">
+                        <div class="card-front">
+                            <div class="flex justify-between items-start mb-6">
+                                <div
+                                    class="p-3 bg-primary-500/10 rounded-2xl border border-primary-500/20 group-hover:bg-primary-500/20 transition-colors">
+                                    <i data-feather="file-text" class="text-primary-400"></i>
+                                </div>
+                                <span
+                                    class="px-3 py-1 bg-white/5 rounded-full text-[10px] font-bold tracking-widest uppercase text-gray-400 border border-white/5">NLP
+                                    / AI</span>
                             </div>
-                            <span
-                                class="px-3 py-1 bg-white/5 rounded-full text-[10px] font-bold tracking-widest uppercase text-gray-400 border border-white/5">NLP
-                                / AI</span>
+                            <h3 class="text-xl font-bold mb-2 group-hover:text-primary-400 transition-colors">Resume
+                                Screening Bot</h3>
+                            <p class="text-[var(--text-secondary)] text-sm leading-relaxed mb-6 flex-grow">
+                                Intelligent NLP tool that parses resumes against job descriptions to suggest
+                                optimization improvements.
+                            </p>
+                            <div
+                                class="flex items-center text-sm font-mono text-primary-400 opacity-0 group-hover:opacity-100 transition-all">
+                                <span>View Case Study</span>
+                                <i data-feather="rotate-cw" class="w-4 h-4 ml-2 transition-transform"></i>
+                            </div>
                         </div>
-                        <h3 class="text-xl font-bold mb-2 group-hover:text-sky-400 transition-colors">Resume Screening
-                            Bot</h3>
-                        <p class="text-[var(--text-secondary)] text-sm leading-relaxed mb-6 flex-grow">
-                            Intelligent NLP tool that parses resumes against job descriptions to suggest optimization
-                            improvements.
-                        </p>
-                        <div
-                            class="flex items-center text-sm font-mono text-[var(--text-secondary)] group-hover:text-sky-400 transition-colors">
-                            <span>View Case Study</span>
-                            <i data-feather="arrow-right"
-                                class="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform"></i>
+                        <div class="card-back">
+                            <h4 class="text-primary-400 font-bold mb-2">Problem</h4>
+                            <p class="text-sm text-[var(--text-secondary)] mb-4">Recruiters spend hours manually
+                                filtering resumes, often missing qualified candidates due to keyword mismatches.</p>
+                            <h4 class="text-secondary-400 font-bold mb-2">Solution</h4>
+                            <p class="text-sm text-[var(--text-secondary)]">Leverages semantic analysis to match skills
+                                beyond literal keywords and rank candidates objectively.</p>
                         </div>
                     </div>
                 </div>
@@ -1657,66 +1778,71 @@
 
 
                 <!-- 6. Academic Suite -->
-                <div class="project-card group cursor-pointer" onclick="openModal('automation')"
-                    data-category="web automation">
-                    <div class="p-8 h-full flex flex-col relative z-10">
-                        <div class="flex justify-between items-start mb-6">
-                            <div
-                                class="p-3 bg-teal-500/10 rounded-2xl border border-teal-500/20 group-hover:bg-teal-500/20 transition-colors">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round" class="text-teal-500 calendar-flip">
-                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                                    <line x1="16" y1="2" x2="16" y2="6"></line>
-                                    <line x1="8" y1="2" x2="8" y2="6"></line>
-                                    <line x1="3" y1="10" x2="21" y2="10"></line>
-                                </svg>
+                <div class="project-card group" onclick="this.classList.toggle('flipped')">
+                    <div class="card-inner">
+                        <div class="card-front">
+                            <div class="flex justify-between items-start mb-6">
+                                <div
+                                    class="p-3 bg-secondary-500/10 rounded-2xl border border-secondary-500/20 group-hover:bg-secondary-500/20 transition-colors">
+                                    <i data-feather="calendar" class="text-secondary-400"></i>
+                                </div>
+                                <span
+                                    class="px-3 py-1 bg-white/5 rounded-full text-[10px] font-bold tracking-widest uppercase text-gray-400 border border-white/5">Automation</span>
                             </div>
-                            <span
-                                class="px-3 py-1 bg-white/5 rounded-full text-[10px] font-bold tracking-widest uppercase text-gray-400 border border-white/5">Automation</span>
+                            <h3 class="text-xl font-bold mb-2 group-hover:text-secondary-400 transition-colors">Academic
+                                Automation</h3>
+                            <p class="text-[var(--text-secondary)] text-sm leading-relaxed mb-6 flex-grow">
+                                Intelligent scheduling engine to automate the creation of complex institutional
+                                timetables.
+                            </p>
+                            <div
+                                class="flex items-center text-sm font-mono opacity-0 group-hover:opacity-100 transition-all">
+                                <span>View Case Study</span>
+                                <i data-feather="rotate-cw" class="w-4 h-4 ml-2 transition-transform"></i>
+                            </div>
                         </div>
-                        <h3 class="text-xl font-bold mb-2 group-hover:text-teal-400 transition-colors">Academic
-                            Automation</h3>
-                        <p class="text-[var(--text-secondary)] text-sm leading-relaxed mb-6 flex-grow">
-                            Intelligent scheduling engine to automate the creation of complex institutional timetables.
-                        </p>
-                        <div
-                            class="flex items-center text-sm font-mono text-[var(--text-secondary)] group-hover:text-teal-400 transition-colors">
-                            <span>View Case Study</span>
-                            <i data-feather="arrow-right"
-                                class="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform"></i>
+                        <div class="card-back">
+                            <h4 class="text-primary-400 font-bold mb-2">Problem</h4>
+                            <p class="text-sm text-[var(--text-secondary)] mb-4">Creating collision-free institutional
+                                timetables is a complex problem that takes days of manual effort.</p>
+                            <h4 class="text-secondary-400 font-bold mb-2">Solution</h4>
+                            <p class="text-sm text-[var(--text-secondary)]">Implemented a constraint-satisfaction
+                                algorithm that generates optimal schedules in minutes.</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- 7. NeuroLink Glasses -->
-                <div class="project-card flagship group cursor-pointer" onclick="openModal('neurolink')"
-                    data-category="research">
-                    <div class="p-8 h-full flex flex-col relative z-10">
-                        <div class="flex justify-between items-start mb-6">
-                            <div
-                                class="p-3 bg-lime-500/10 rounded-2xl border border-lime-500/20 group-hover:bg-lime-500/20 transition-colors">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round" class="text-lime-500 glasses-scan">
-                                    <path d="M2 10s4-3 10-3 10 3 10 3v7a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-7z"></path>
-                                    <circle cx="12" cy="13" r="3"></circle>
-                                </svg>
+                <div class="project-card group" onclick="this.classList.toggle('flipped')">
+                    <div class="card-inner">
+                        <div class="card-front">
+                            <div class="flex justify-between items-start mb-6">
+                                <div
+                                    class="p-3 bg-indigo-500/10 rounded-2xl border border-indigo-500/20 group-hover:bg-indigo-500/20 transition-colors">
+                                    <i data-feather="eye" class="text-indigo-400"></i>
+                                </div>
+                                <span
+                                    class="px-3 py-1 bg-indigo-500/10 rounded-full text-[10px] font-bold tracking-widest uppercase text-indigo-400 border border-indigo-500/20">Flagship</span>
                             </div>
-                            <span
-                                class="px-3 py-1 bg-lime-500/10 rounded-full text-[10px] font-bold tracking-widest uppercase text-lime-500 border border-lime-500/20">Flagship</span>
+                            <h3 class="text-xl font-bold mb-2 group-hover:text-indigo-400 transition-colors">NeuroLink
+                                Glasses</h3>
+                            <p class="text-[var(--text-secondary)] text-sm leading-relaxed mb-6 flex-grow">
+                                BCI wearable device empowering motor-impaired users to control digital interfaces with
+                                brain signals.
+                            </p>
+                            <div
+                                class="flex items-center text-sm font-mono opacity-0 group-hover:opacity-100 transition-all">
+                                <span>View Case Study</span>
+                                <i data-feather="rotate-cw" class="w-4 h-4 ml-2 transition-transform"></i>
+                            </div>
                         </div>
-                        <h3 class="text-xl font-bold mb-2 group-hover:text-lime-400 transition-colors">NeuroLink Glasses
-                        </h3>
-                        <p class="text-[var(--text-secondary)] text-sm leading-relaxed mb-6 flex-grow">
-                            BCI wearable device empowering motor-impaired users to control digital interfaces with brain
-                            signals.
-                        </p>
-                        <div
-                            class="flex items-center text-sm font-mono text-[var(--text-secondary)] group-hover:text-lime-400 transition-colors">
-                            <span>View Case Study</span>
-                            <i data-feather="arrow-right"
-                                class="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform"></i>
+                        <div class="card-back">
+                            <h4 class="text-primary-400 font-bold mb-2">Problem</h4>
+                            <p class="text-sm text-[var(--text-secondary)] mb-4">Motor-impaired individuals lack
+                                efficient ways to interact with digital devices and communicate independently.</p>
+                            <h4 class="text-secondary-400 font-bold mb-2">Solution</h4>
+                            <p class="text-sm text-[var(--text-secondary)]">A wearable EEG system that translates neural
+                                patterns into mouse movements and clicks.</p>
                         </div>
                     </div>
                 </div>
@@ -1729,26 +1855,47 @@
                 <div class="absolute inset-0 bg-gradient-to-b from-transparent to-primary-500/5 pointer-events-none">
                 </div>
 
-                <h2 class="text-3xl md:text-5xl font-bold mb-6">Let's Build Something <span
-                        class="text-primary-500">Amazing</span></h2>
+                <h2 class="text-3xl md:text-5xl font-bold mb-6">Get in Touch</h2>
                 <p class="text-[var(--text-secondary)] text-lg mb-8 max-w-2xl mx-auto">
                     I'm currently looking for full-time opportunities. If you have a project in mind or just want to say
                     hi, feel free to drop a message!
                 </p>
 
-                <a href="mailto:haripriyaagraharapu69@gmail.com" class="send-msg-btn inline-flex items-center gap-3">
-                    <div class="svg-wrapper-1">
-                        <div class="svg-wrapper">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-                                <path fill="none" d="M0 0h24v24H0z"></path>
-                                <path fill="currentColor"
-                                    d="M1.946 9.315c-.522-.174-.527-.455.01-.634l19.087-6.362c.529-.176.832.12.684.638l-5.454 19.086c-.15.529-.455.547-.679.045L12 14l6-8-8 6-8.054-2.685z">
-                                </path>
-                            </svg>
-                        </div>
+                <form id="contact-form" class="max-w-xl mx-auto space-y-6 text-left">
+                    <input type="hidden" name="access_key" value="04e755ef-c916-4321-aca2-76bef7ccc49c">
+                    <div>
+                        <label for="name"
+                            class="block text-sm font-medium text-[var(--text-secondary)] mb-2">Name</label>
+                        <input type="text" id="name" name="name" placeholder="Your Name" required
+                            class="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-2xl focus:border-primary-500 transition-colors text-[var(--text-primary)] outline-none">
                     </div>
-                    <span class="font-bold">Say Hello</span>
-                </a>
+                    <div>
+                        <label for="email"
+                            class="block text-sm font-medium text-[var(--text-secondary)] mb-2">Email</label>
+                        <input type="email" id="email" name="email" placeholder="Your Email" required
+                            class="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-2xl focus:border-primary-500 transition-colors text-[var(--text-primary)] outline-none">
+                    </div>
+                    <div>
+                        <label for="message"
+                            class="block text-sm font-medium text-[var(--text-secondary)] mb-2">Message</label>
+                        <textarea id="message" name="message" rows="4" placeholder="Your Message" required
+                            class="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-2xl focus:border-primary-500 transition-colors text-[var(--text-primary)] outline-none resize-none"></textarea>
+                    </div>
+                    <button type="submit" id="submit-btn" class="send-msg-btn w-full">
+                        <div class="svg-wrapper-1">
+                            <div class="svg-wrapper">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+                                    <path fill="none" d="M0 0h24v24H0z"></path>
+                                    <path fill="currentColor"
+                                        d="M1.946 9.315c-.522-.174-.527-.455.01-.634l19.087-6.362c.529-.176.832.12.684.638l-5.454 19.086c-.15.529-.455.547-.679.045L12 14l6-8-8 6-8.054-2.685z">
+                                    </path>
+                                </svg>
+                            </div>
+                        </div>
+                        <span class="font-bold">Send Message</span>
+                    </button>
+                    <div id="form-status" class="text-center text-sm font-medium hidden"></div>
+                </form>
 
                 <div class="mt-12 flex justify-center gap-6">
                     <a href="https://github.com/haripriyaagraharapu-gif" target="_blank"
@@ -1765,31 +1912,27 @@
         </section>
     </main>
 
-    <!-- Footer -->
+    <!-- Success Message Modal -->
+    <div id="success-modal-overlay" class="modal-overlay" aria-hidden="true">
+        <div class="success-modal">
+            <button class="modal-top-close" onclick="closeSuccessModal()">
+                <i data-feather="x" class="w-5 h-5"></i>
+            </button>
+            <div class="success-icon-wrapper">
+                <i data-feather="check" class="w-10 h-10"></i>
+            </div>
+            <h2 class="success-title">Message Sent!</h2>
+            <p class="success-message">Thank you for reaching out. I'll get back to you within 24 hours.</p>
+            <button class="modal-close-btn" onclick="closeSuccessModal()">Close</button>
+        </div>
+    </div>
     <footer class="py-8 border-t border-[var(--glass-border)] bg-[var(--bg-color)]/50 backdrop-blur-md relative z-10">
         <div
             class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-[var(--text-secondary)]">
             <p>&copy; <span id="current-year"></span> Haripriya Agraharapu. All Rights Reserved.</p>
-            <p class="font-mono text-xs">Built with <span class="text-primary-500">Antigravity</span> & <span
-                    class="text-blue-500">Tailwind</span></p>
         </div>
     </footer>
 
-    <!-- Case Study Modal Structure -->
-    <div id="modal-overlay" class="modal-overlay" aria-hidden="true" role="dialog" aria-modal="true">
-        <div class="modal-container relative">
-            <button id="modal-close"
-                class="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors z-20">
-                <i data-feather="x" class="w-5 h-5 text-[var(--text-primary)]"></i>
-            </button>
-            <div id="modal-content" class="p-8 md:p-12 relative z-10">
-                <!-- Content Injected via JS -->
-            </div>
-            <!-- Modal Background Design -->
-            <div class="absolute top-0 right-0 w-64 h-64 bg-primary-500/5 rounded-full blur-3xl pointer-events-none">
-            </div>
-        </div>
-    </div>
 
     <!-- Back to Top -->
     <button id="back-to-top" aria-label="Back to Top">
@@ -1827,6 +1970,27 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            // Theme Toggle Logic
+            const themeToggle = document.getElementById('theme-toggle');
+            const currentTheme = localStorage.getItem('theme');
+
+            if (currentTheme) {
+                document.documentElement.setAttribute('data-theme', currentTheme);
+                if (currentTheme === 'light') {
+                    themeToggle.checked = true;
+                }
+            }
+
+            themeToggle.addEventListener('change', function () {
+                if (this.checked) {
+                    document.documentElement.setAttribute('data-theme', 'light');
+                    localStorage.setItem('theme', 'light');
+                } else {
+                    document.documentElement.removeAttribute('data-theme');
+                    localStorage.setItem('theme', 'dark');
+                }
+            });
+
             // 5. Scroll Animations (Refined for Antigravity Feel)
             gsap.set(".section-heading, .section-content", { autoAlpha: 0, y: 30, scale: 0.98 });
 
@@ -1843,341 +2007,121 @@
                 })
             });
 
-            // ... (keeping project filtering logic same but updating easing if needed) ...
 
             // Project Data for Modals
             const projectsData = {
                 classpulse: {
                     title: "ClassPulse AI",
                     category: "AI / Educational Technology",
-                    description: "An AI-powered classroom analytics system that uses Computer Vision to track student engagement and emotions in real-time, ensuring privacy while providing actionable insights to educators.",
+                    description: "An AI-powered classroom analytics system that uses Computer Vision to track student engagement and emotions in real-time.",
+                    problem: "Educators struggle to measure real-time student engagement in large classes, often missing subtle emotional cues or disengagement.",
+                    solution: "Uses high-precision Computer Vision and emotion recognition to provide live heatmaps of engagement levels, helping teachers adjust their pace instantly.",
                     techStack: ["Python", "OpenCV", "TensorFlow", "Flask", "React"],
                     link: "#"
                 },
                 risk2relief: {
                     title: "Risk2Relief",
                     category: "AI / Healthcare",
-                    description: "A machine learning model designed to predict the risk of diabetes and other health conditions based on lifestyle and medical metrics, providing early diagnosis probabilities.",
+                    description: "A machine learning model designed to predict the risk of diabetes and other health conditions.",
+                    problem: "Late diagnosis of lifestyle diseases significantly reduces treatment effectiveness and increases healthcare costs globally.",
+                    solution: "Developed an ensemble ML model that analyzes subtle health metrics to provide a risk score with 94% accuracy for early intervention.",
                     techStack: ["Scikit-learn", "Pandas", "FastAPI", "Streamlit"],
                     link: "#"
                 },
                 resume: {
                     title: "Resume Screening Bot",
                     category: "NLP / AI",
-                    description: "An intelligent NLP tool that parses resumes against job descriptions, identifying key gaps and suggesting optimization improvements to increase hiring chances.",
+                    description: "An intelligent NLP tool that parses resumes against job descriptions.",
+                    problem: "Recruiters spend hours manually filtering resumes, often missing qualified candidates due to inconsistent formatting or keyword mismatches.",
+                    solution: "Leverages Transformers and spaCy to extract semantic meaning, matching skills beyond literal keywords and ranking candidates objectively.",
                     techStack: ["NLTK", "Spacy", "Python", "React"],
                     link: "#"
                 },
-
                 automation: {
                     title: "Academic Automation",
                     category: "Web Automation",
-                    description: "An intelligent scheduling engine that automates the creation of complex institutional timetables, resolving conflicts and optimizing resource allocation.",
+                    description: "An intelligent scheduling engine that automates the creation of complex institutional timetables.",
+                    problem: "Creating collision-free institutional timetables is a complex combinatorial problem that takes days of manual effort.",
+                    solution: "Implemented a constraint-satisfaction algorithm that generates optimal schedules in minutes, optimizing faculty load and room usage.",
                     techStack: ["Node.js", "Algorithms", "MongoDB", "Express"],
                     link: "#"
                 },
                 neurolink: {
                     title: "NeuroLink Glasses",
                     category: "BCI / Research",
-                    description: "A BCI wearable device empowering motor-impaired users to control digital interfaces using brain signals, bridging the gap between mind and machine.",
+                    description: "A BCI wearable device empowering motor-impaired users to control digital interfaces.",
+                    problem: "Millions of motor-impaired individuals lack efficient ways to interact with digital devices and communicate independently.",
+                    solution: "A wearable EEG-based system that translates neural patterns into mouse movements and clicks, enabling hands-free computer control.",
                     techStack: ["EEG Sensors", "Python", "Signal Processing", "Arduino"],
                     link: "#"
                 }
             };
 
-            // Modal Functions
-            window.openModal = function (projectId) { // Exposed to global scope for inline onclick
-                const project = projectsData[projectId];
-                if (!project) return;
+            // Custom Success Modal Functions
+            const successModal = document.getElementById('success-modal-overlay');
+            const contactForm = document.getElementById('contact-form');
+            const submitBtn = document.getElementById('submit-btn');
 
-                const modal = document.getElementById('modal-overlay');
-                const content = document.getElementById('modal-content');
-
-                content.innerHTML = `
-                    <span class="text-sm font-mono text-primary-400 mb-2 block">${project.category}</span>
-                    <h2 class="text-3xl md:text-4xl font-bold mb-6">${project.title}</h2>
-                    <p class="text-[var(--text-secondary)] text-lg mb-8 leading-relaxed">${project.description}</p>
-                    
-                    <div class="mb-8">
-                        <h4 class="text-sm font-bold uppercase tracking-wider text-[var(--text-primary)] mb-4">Tech Stack</h4>
-                        <div class="flex flex-wrap gap-2">
-                            ${project.techStack.map(tech => `<span class="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-sm text-[var(--text-secondary)]">${tech}</span>`).join('')}
-                        </div>
-                    </div>
-
-                    <a href="${project.link}" class="inline-flex items-center justify-center px-8 py-3 bg-primary-500 text-white rounded-full font-bold hover:bg-primary-600 transition-colors">
-                        View Full Project <i data-feather="external-link" class="ml-2 w-4 h-4"></i>
-                    </a>
-                `;
-
-                feather.replace(); // Refresh icons
-                modal.classList.add('active');
-                document.body.style.overflow = 'hidden'; // Prevent background scrolling
+            window.closeSuccessModal = function () {
+                successModal.classList.remove('active');
+                document.body.classList.remove('modal-open');
             };
 
-            function closeModal() {
-                const modal = document.getElementById('modal-overlay');
-                modal.classList.remove('active');
-                document.body.style.overflow = '';
-            }
+            if (contactForm) {
+                contactForm.addEventListener('submit', function (e) {
+                    e.preventDefault();
 
-            // Event Listeners for Modal
-            document.getElementById('modal-close').addEventListener('click', closeModal);
-            document.getElementById('modal-overlay').addEventListener('click', (e) => {
-                if (e.target === document.getElementById('modal-overlay')) {
-                    closeModal();
-                }
-            });
+                    // Visual feedback
+                    const originalBtnContent = submitBtn.innerHTML;
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<span class="font-bold">Sending...</span>';
 
-            // Close on Escape key
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && document.getElementById('modal-overlay').classList.contains('active')) {
-                    closeModal();
-                }
-            });
+                    const formData = new FormData(contactForm);
 
-            /**
-             * Antigravity Physics Engine v2.1 (Optimized)
-             */
-            class Antigravity {
-                constructor(canvasId) {
-                    this.canvas = document.getElementById(canvasId);
-                    if (!this.canvas) return;
-                    this.ctx = this.canvas.getContext('2d', { alpha: true }); // optimize context
-                    this.particles = [];
-                    this.width = window.innerWidth;
-                    this.height = window.innerHeight;
-                    this.animationFrameId = null;
-
-                    this.config = {
-                        particleCount: window.innerWidth < 768 ? 35 : 70, // Reduce count on mobile
-                        baseRadius: 1.5,
-                        maxRadius: 4,
-                        speedFactor: 0.35,
-                        mouseRepelRadius: 200,
-                        mouseRepelForce: 2,
-                        scrollWarpFactor: 0.15,
-                        connectionDistance: 130,
-                        connectionDistanceSq: 130 * 130, // Pre-calculate squared distance
-                        pulseRadius: 350,
-                        pulseForce: 15,
-                        colorPalette: [
-                            'rgba(168, 85, 247, ',
-                            'rgba(236, 72, 153, ',
-                            'rgba(56, 189, 248, '
-                        ]
-                    };
-
-                    this.mouse = { x: null, y: null };
-                    this.pulse = { x: null, y: null, active: false };
-                    this.scrollY = window.scrollY;
-                    this.scrollSpeed = 0;
-                    this.gyro = { x: 0, y: 0 };
-
-                    this.init();
-                }
-
-                init() {
-                    this.resize();
-                    // Debounce resize
-                    let resizeTimeout;
-                    window.addEventListener('resize', () => {
-                        clearTimeout(resizeTimeout);
-                        resizeTimeout = setTimeout(() => this.resize(), 100);
-                    });
-
-                    window.addEventListener('mousemove', (e) => {
-                        this.mouse.x = e.clientX;
-                        this.mouse.y = e.clientY;
-                    });
-                    window.addEventListener('mouseout', () => {
-                        this.mouse.x = null;
-                        this.mouse.y = null;
-                    });
-                    window.addEventListener('mousedown', (e) => {
-                        this.pulse.x = e.clientX;
-                        this.pulse.y = e.clientY;
-                        this.pulse.active = true;
-                        setTimeout(() => { this.pulse.active = false; }, 100);
-                    });
-
-                    // Optimized Scroll Handler
-                    let ticking = false;
-                    window.addEventListener('scroll', () => {
-                        if (!ticking) {
-                            window.requestAnimationFrame(() => {
-                                const currentScroll = window.scrollY;
-                                this.scrollSpeed = currentScroll - this.scrollY;
-                                this.scrollY = currentScroll;
-                                ticking = false;
-                            });
-                            ticking = true;
-                        }
-                    });
-
-                    // Ensure immediate visibility
-                    this.canvas.style.opacity = '1';
-
-                    if (window.DeviceOrientationEvent) {
-                        window.addEventListener('deviceorientation', (e) => {
-                            this.gyro.x = (e.gamma || 0) / 45;
-                            this.gyro.y = (e.beta || 0) / 45;
-                        });
-                    }
-
-                    // Visibility API to save battery
-                    document.addEventListener("visibilitychange", () => {
-                        if (document.hidden) {
-                            cancelAnimationFrame(this.animationFrameId);
-                        } else {
-                            this.animate();
-                        }
-                    });
-
-                    this.createParticles();
-                    this.animate();
-                }
-
-                resize() {
-                    this.width = window.innerWidth;
-                    this.height = window.innerHeight;
-                    this.canvas.width = this.width;
-                    this.canvas.height = this.height;
-                    // Update particle count based on new width
-                    this.config.particleCount = this.width < 768 ? 35 : 70;
-                    this.createParticles();
-                }
-
-                createParticles() {
-                    this.particles = [];
-                    for (let i = 0; i < this.config.particleCount; i++) {
-                        this.particles.push(new Particle(this, this.config));
-                    }
-                }
-
-                animate() {
-                    this.ctx.clearRect(0, 0, this.width, this.height);
-                    this.scrollSpeed *= 0.92;
-
-                    this.particles.forEach(particle => {
-                        particle.update(this.scrollSpeed, this.gyro, this.pulse);
-                        particle.draw();
-                    });
-
-                    this.drawConstellations();
-                    this.animationFrameId = requestAnimationFrame(() => this.animate());
-                }
-
-                drawConstellations() {
-                    const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
-                    const connectionColor = isDark ? '255, 255, 255' : '0, 0, 0';
-
-                    for (let i = 0; i < this.particles.length; i++) {
-                        // Start loop from i+1 to avoid duplicate checks and self-checks
-                        for (let j = i + 1; j < this.particles.length; j++) {
-                            const p1 = this.particles[i];
-                            const p2 = this.particles[j];
-                            const dx = p1.x - p2.x;
-                            const dy = p1.y - p2.y;
-
-                            // Optimization: Check squared distance first to avoid expensive Math.sqrt
-                            const distSq = dx * dx + dy * dy;
-
-                            if (distSq < this.config.connectionDistanceSq) {
-                                const dist = Math.sqrt(distSq);
-                                let opacity = 1 - (dist / this.config.connectionDistance);
-                                opacity = opacity * (isDark ? 0.15 : 0.1);
-
-                                this.ctx.beginPath();
-                                this.ctx.strokeStyle = `rgba(${connectionColor}, ${opacity})`;
-                                this.ctx.lineWidth = 0.5;
-                                this.ctx.moveTo(p1.x, p1.y);
-                                this.ctx.lineTo(p2.x, p2.y);
-                                this.ctx.stroke();
+                    fetch('https://api.web3forms.com/submit', {
+                        method: 'POST',
+                        body: formData
+                    })
+                        .then(async (response) => {
+                            const result = await response.json();
+                            if (response.status == 200 || result.success) {
+                                // Success!
+                                successModal.classList.add('active');
+                                document.body.classList.add('modal-open');
+                                contactForm.reset();
+                            } else {
+                                console.error('Form submission failed:', result);
+                                alert(result.message || "Submission failed. Please try again.");
                             }
-                        }
-                    }
-                }
+                        })
+                        .catch(error => {
+                            console.error('Fetch error:', error);
+                            alert("There was an error sending your message. Please check your connection and try again.");
+                        })
+                        .finally(() => {
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = originalBtnContent;
+                        });
+                });
             }
 
-            class Particle {
-                constructor(game, config) {
-                    this.game = game;
-                    this.config = config;
-                    this.reset();
-                    this.x = Math.random() * this.game.width;
-                    this.y = Math.random() * this.game.height;
+
+            // Header Scroll Logic
+            const header = document.getElementById('header');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 20) {
+                    header.classList.add('scrolled');
+                } else {
+                    header.classList.remove('scrolled');
                 }
+            });
 
-                reset() {
-                    this.radius = Math.random() * this.config.maxRadius + this.config.baseRadius;
-                    this.x = Math.random() * this.game.width;
-                    this.y = Math.random() * this.game.height;
-                    this.vx = (Math.random() - 0.5) * this.config.speedFactor;
-                    this.vy = (Math.random() - 0.5) * this.config.speedFactor;
-                    const baseColor = this.config.colorPalette[Math.floor(Math.random() * this.config.colorPalette.length)];
-                    this.colorStr = baseColor;
-                    this.alpha = Math.random() * 0.5 + 0.2;
-                    this.phase = Math.random() * Math.PI * 2;
-                }
-
-                update(scrollSpeed, gyro, pulse) {
-                    this.x += this.vx;
-                    this.y += this.vy;
-                    this.y -= scrollSpeed * this.config.scrollWarpFactor;
-                    this.x += gyro.x * 0.5;
-                    this.y += gyro.y * 0.5;
-                    this.phase += 0.01;
-                    this.y += Math.sin(this.phase) * 0.15;
-
-                    if (this.x < -100) this.x = this.game.width + 100;
-                    if (this.x > this.game.width + 100) this.x = -100;
-                    if (this.y < -100) this.y = this.game.height + 100;
-                    if (this.y > this.game.height + 100) this.y = -100;
-
-                    if (this.game.mouse.x != null) {
-                        this.applyForce(this.game.mouse.x, this.game.mouse.y, this.config.mouseRepelRadius, this.config.mouseRepelForce);
-                    }
-                    if (pulse.active) {
-                        this.applyForce(pulse.x, pulse.y, this.config.pulseRadius, this.config.pulseForce);
-                    }
-                }
-
-                applyForce(centerX, centerY, radius, strength) {
-                    let dx = centerX - this.x;
-                    let dy = centerY - this.y;
-                    let distance = Math.sqrt(dx * dx + dy * dy);
-                    if (distance < radius) {
-                        const force = (radius - distance) / radius;
-                        const forceX = (dx / distance) * force * strength;
-                        const forceY = (dy / distance) * force * strength;
-                        this.x -= forceX;
-                        this.y -= forceY;
-                    }
-                }
-
-                draw() {
-                    const ctx = this.game.ctx;
-                    const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
-                    ctx.save();
-                    ctx.globalCompositeOperation = isDark ? 'lighter' : 'source-over';
-                    ctx.beginPath();
-                    const g = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius * 2);
-                    // Increase alpha for light mode to maintain visibility
-                    const finalAlpha = isDark ? this.alpha : this.alpha * 1.5;
-                    g.addColorStop(0, this.colorStr + finalAlpha + ')');
-                    g.addColorStop(1, 'rgba(0,0,0,0)');
-                    ctx.fillStyle = g;
-                    ctx.arc(this.x, this.y, this.radius * 2, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.restore();
-                }
-            }
-
-            const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-            if (!prefersReducedMotion) {
-                window.antigravityInstance = new Antigravity('antigravity-canvas');
-            }
+            // Mouse Spotlight Tracking
+            window.addEventListener('mousemove', (e) => {
+                const { clientX, clientY } = e;
+                document.documentElement.style.setProperty('--mouse-x', `${clientX}px`);
+                document.documentElement.style.setProperty('--mouse-y', `${clientY}px`);
+            });
         });
     </script>
 </body>
