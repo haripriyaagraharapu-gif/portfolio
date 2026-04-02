@@ -18,13 +18,11 @@ This is my personal portfolio website showcasing my projects, skills, and resume
 * CSS
 * JavaScript
 
-## 🔗 Live Website
 
-https://your-username.github.io/portfolio/
 
 ## 📄 Resume
 
-Click on "Download CV" button on the website
+Click on "Resume" button on the website
 
 ## 👩‍💻 Author
 
